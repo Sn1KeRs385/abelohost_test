@@ -1,0 +1,54 @@
+  version: '3'
+
+  services:
+        
+    nginx:
+     container_name: abelohost_nginx
+     image: nginx:1.19.2-alpine
+     restart: always
+     volumes:
+       - ${LARAVEL_PATH_HOST}:${LARAVEL_PATH_CONTAINER}
+       - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+     ports:
+       - 80:80
+     depends_on:
+       - laravel
+
+    vue_crud:
+      container_name: abelhost_vue_crud
+      image: node:14.11.0
+      working_dir: ${NODEJS_PATH_CONTAINER_1}
+      command: npm run start
+      volumes:
+        - ${NODEJS_PATH_HOST_1}:${NODEJS_PATH_CONTAINER_1}
+
+    laravel:
+      container_name: abelohost_laravel
+      image: westside072/php-fpm:7.4
+      restart: always
+      working_dir: ${LARAVEL_PATH_CONTAINER}
+      volumes:
+        - ${LARAVEL_PATH_HOST}:${LARAVEL_PATH_CONTAINER}
+      depends_on:
+        - mysqldb
+
+    mysqldb:
+      container_name: abelohost_mysqldb
+      image: mysql:8.0.21
+      restart: always
+      environment:
+        - MYSQL_ROOT_PASSWORD=rootpassword
+        - MYSQL_DATABASE=abelohost
+        - MYSQL_USER=abelohost
+        - MYSQL_PASSWORD=pass
+      volumes:
+        - ${MYSQL_PATH_HOST}:/var/lib/mysql
+
+    adminer:
+      container_name: abelohost_adminer
+      image: adminer:latest
+      restart: always
+      ports:
+        - 8001:8080
+      depends_on:
+        - mysqldb
